@@ -1,73 +1,45 @@
 ---
 - name: "Check for wine binary"
-  stat:
+  ansible.builtin.stat:
     path: '/usr/bin/wine'
   changed_when: false
   register: wine_install
 
-- when: not wine_install.stat.exists or wine_force_install|bool
+- name: "Install tasks"
+  when: not wine_install.stat.exists or wine_force_install|bool
   block:
- #   - name: Gather OS specific variables
- #     include_vars: "{{ lookup('first_found', params) }}"
- #     vars:
- #       params:
- #         files:
- #           - "{{ ansible_distribution }}-{{ ansible_distribution_major_version }}.yml"
- #           - "{{ ansible_distribution }}.yml"
- #           - "{{ ansible_os_family }}.yml"
- #         paths:
- #           - vars
-
     - name: "Add i386 support for dpkg"
-      lineinfile:
+      ansible.builtin.lineinfile:
         dest: /var/lib/dpkg/arch
         line: "i386"
         create: true
         mode: 0644
 
     - name: "Install requirement"
-      package:
-        name: [gnupg2, ca-certificates, apt-transport-https, software-properties-common, unzip, tar]
+      ansible.builtin.package:
+        name: [gnupg2, ca-certificates, apt-transport-https, software-properties-common, unzip, tar, bzip2]
         state: present
 
-#    - name: "Add opensuse wine apt key"
-#      apt_key:
-#        url: https://download.opensuse.org/repositories/Emulators:/Wine:/Debian/Debian_10/Release.key
-#        state: present
-#
-#    - name: Add opensuse repo
-#      apt_repository:
-#        repo: "deb https://download.opensuse.org/repositories/Emulators:/Wine:/Debian/{{ wine_opensuse_repo_dist }} ./"
-#        state: present
-#        filename: winehq
-
     - name: "Add winehq apt key"
-      apt_key:
+      ansible.builtin.apt_key:
         url: https://dl.winehq.org/wine-builds/winehq.key
         state: present
 
     - name: Add winhq repo
-      apt_repository:
-        repo: "deb https://dl.winehq.org/wine-builds/{{ ansible_distribution | lower}}/ {{ ansible_distribution_release }} main"
+      ansible.builtin.apt_repository:
+        repo: "deb https://dl.winehq.org/wine-builds/{{ ansible_distribution | lower }}/ {{ ansible_distribution_release }} main"
         state: present
         filename: winehq
 
-#    - name: "Add repository"
-#      shell: echo "deb https://download.opensuse.org/repositories/Emulators:/Wine:/Debian/Debian_10 ./" > /etc/apt/sources.list.d/winehq.list
-
-#    - name: Update repositories cache
-#      apt:
-#        update_cache: true
-
     - name: "Install winehq"
-      package:
+      ansible.builtin.package:
         name: winehq-stable
         update_cache: true
         install_recommends: true
         state: present
 
     - name: "Creates wine directory"
-      file:
+      ansible.builtin.file:
         path: "{{ item }}"
         state: directory
         mode: 0755
@@ -76,7 +48,7 @@
         - /opt/wine-stable/share/wine/gecko/
 
     - name: "Download mono and gecko globally"
-      unarchive:
+      ansible.builtin.unarchive:
         src: "http://dl.winehq.org/wine/{{ item.file }}"
         dest: "/opt/wine-stable/share/wine/{{ item.folder }}"
         remote_src: true

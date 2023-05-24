@@ -1,22 +1,25 @@
 ---
 galaxy_info:
-  author: "Philippe leal"
-  description: "Install and configure wine to install windows applications"
+  author: lotusnoir
   role_name: apps_wine
-  license: "license: Apache License, Version 2.0"
+  description: "Install and configure wine to install windows applications."
+  license: "Apache License, Version 2.0"
   min_ansible_version: 2.8
 
   platforms:
     - name: "Ubuntu"
       versions:
-        - "xenial"
+        - "focal"
+        - "bionic"
+        - "jammy"
     - name: "Debian"
       versions:
         - "buster"
-        - "stretch"
+        - "bullseye"
 
   galaxy_tags:
     - windows
+    - emulation
     - wine
     - compatibility
 
