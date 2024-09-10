@@ -13,19 +13,23 @@
         dest: /var/lib/dpkg/arch
         line: "i386"
         create: true
-        mode: 0644
+        mode: '0644'
 
     - name: "Install requirement"
       ansible.builtin.package:
-        name: [gnupg2, ca-certificates, apt-transport-https, software-properties-common, unzip, tar, bzip2]
+        name: [xz-utils, gnupg2, ca-certificates, apt-transport-https, software-properties-common, unzip, tar, bzip2]
         state: present
+      register: pkg_result
+      retries: 12
+      delay: 10
+      until: pkg_result is success
 
     - name: "Add winehq apt key"
       ansible.builtin.apt_key:
         url: https://dl.winehq.org/wine-builds/winehq.key
         state: present
 
-    - name: Add winhq repo
+    - name: "Add winhq repo"
       ansible.builtin.apt_repository:
         repo: "deb https://dl.winehq.org/wine-builds/{{ ansible_distribution | lower }}/ {{ ansible_distribution_release }} main"
         state: present
@@ -37,12 +41,16 @@
         update_cache: true
         install_recommends: true
         state: present
+      register: pkg_result
+      retries: 12
+      delay: 10
+      until: pkg_result is success
 
     - name: "Creates wine directory"
       ansible.builtin.file:
         path: "{{ item }}"
         state: directory
-        mode: 0755
+        mode: '0755'
       with_items:
         - /opt/wine-stable/share/wine/mono/
         - /opt/wine-stable/share/wine/gecko/
@@ -53,7 +61,7 @@
         dest: "/opt/wine-stable/share/wine/{{ item.folder }}"
         remote_src: true
       with_items:
-        - {file: "wine-gecko/2.47.1/wine-gecko-2.47.1-x86.tar.bz2", folder: gecko}
-        - {file: "wine-gecko/2.47.1/wine-gecko-2.47.1-x86_64.tar.bz2", folder: gecko}
-        - {file: "wine-mono/5.1.1/wine-mono-5.1.1-x86.tar.xz", folder: mono}
-        - {file: "wine-mono/4.9.4/wine-mono-4.9.4.tar.gz", folder: mono}
+        - {file: "wine-gecko/2.47.4/wine-gecko-2.47.4-x86.tar.xz", folder: gecko}
+        - {file: "wine-gecko/2.47.4/wine-gecko-2.47.4-x86_64.tar.xz", folder: gecko}
+        - {file: "wine-mono/9.3.0/wine-mono-9.3.0-x86.tar.xz", folder: mono}
+          # - {file: "wine-mono/4.9.4/wine-mono-4.9.4.tar.gz", folder: mono}
